@@ -139,6 +139,7 @@ module.exports = function (grunt) {
         cwd: '<%= project.src %>/',  // set working folder / root to copy
         src: [
           'dojoConfig.js', 'index.html', 'app/dmodel/**/*',
+          'robots.txt', 'crossdomain.xml',
           'app/app.profile.js', 'app/package.json',
           'app/templates/*.html', 'app/components/**/templates/*.html',
           'app/**/**/nls/*.js'
@@ -149,7 +150,7 @@ module.exports = function (grunt) {
       build: {
         cwd: '<%= project.dist %>/',  // set working folder / root to copy
         src: [
-          'index.html'
+          'index.html', 'robots.txt', 'crossdomain.xml',
         ],
         dest: '<%= project.built %>/',    // destination folder
         expand: true           // required when using cwd
@@ -158,6 +159,7 @@ module.exports = function (grunt) {
         cwd: '<%= project.built %>/',
         src: [
           'index.html',
+          'robots.txt', 'crossdomain.xml',
           'resources/**',
           'app.css'
         ],
@@ -167,6 +169,11 @@ module.exports = function (grunt) {
       releaseapp: {
         src: '<%= project.built %>/dojo/dojo.js',
         dest: '<%= project.release %>/app.js'
+      },
+      // need this because it's in dojo code, not css
+      releaseblank: {
+        src: '<%= project.built %>/dojo/resources/blank.gif',
+        dest: '<%= project.release %>/resources/blank.gif'
       }
     },
     inject: {
@@ -211,6 +218,22 @@ module.exports = function (grunt) {
           'built/app/styles/main.css'
         ]
       }]
+      }
+    },
+    imagemin: {
+      release: {
+        files: [{
+          expand: true,
+          cwd: '<%= project.built %>/',
+          src: [
+            'resources/**/*.{png,jpg,gif}',
+            'resources/**/**/*.{png,jpg,gif}',
+            'resources/**/**/**/*.{png,jpg,gif}',
+            'resources/**/**/**/**/*.{png,jpg,gif}',
+            'resources/**/**/**/**/**/*.{png,jpg,gif}'
+          ],
+          dest: '<%= project.release %>'
+        }]
       }
     },
     watch: {
@@ -281,7 +304,7 @@ module.exports = function (grunt) {
   ]);
 
   grunt.registerTask('dev', ['inject:single', 'http-server', 'watch']);
-  grunt.registerTask('release', ['default', 'clean:release', 'clean:built', 'copy:build', 'dojo', 'processhtml', 'cssurlcopy', 'copy:release', 'copy:releaseapp']);
+  grunt.registerTask('release', ['default', 'clean:release', 'clean:built', 'copy:build', 'dojo', 'processhtml', 'cssurlcopy', 'copy:release', 'copy:releaseapp', 'copy:releaseblank', 'imagemin:release']);
   grunt.registerTask('build', ['default', 'clean:built', 'copy:build', 'dojo', 'processhtml']);
   grunt.registerTask('initialize', ['esri_slurp', 'default']);
   grunt.registerTask('default', ['clean:dist', 'eslint', 'babel:dev', 'stylus:dev', 'copy:dev', 'inject:single']);
